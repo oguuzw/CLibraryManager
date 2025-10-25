@@ -1,71 +1,68 @@
-## Veri Yapıları Ödevi - Kitap Kütüphanesi (C)
+## ClibraryManager - Book Library (C)
 
-Bu proje, bir metin dosyasından (`kitaplar.txt`) kitap bilgilerini okuyup önce bir kuyruk yapısına, sonra ISBN değerine göre sıralanmış döngüsel çift bağlı listeye dönüştüren örnek bir C uygulamasıdır. Program; ekleme (dosyadan), silme, arama, sıralama ve kütüphane bilgisi hesaplama (toplam kitap, toplam sayfa, ortalama sayfa sayısı) gibi temel işlemleri menü tabanlı olarak sunar.
+ClibraryManager is a small C example that reads book records from a text file (`kitaplar.txt`), builds a queue, and then converts that queue into a circular doubly-linked list sorted by ISBN. The program provides a simple menu with operations such as loading from file, deleting by ISBN, searching (by genre and length), sorting (by author), and computing library statistics (total books, total pages, average pages).
 
-## Dosyalar
-- `1.c` : Projenin kaynak kodu. Kuyruk (`kuyruk`) ve çift bağlı halka (`node`) yapıları ile işlem yapar.
-- `kitaplar.txt` : Programın okuduğu giriş dosyası. (Proje kökünde olmalı)
+## Files
+- `1.c` : Main source file. Implements a queue (`kuyruk`) and a circular doubly-linked list (`node`) and their operations.
+- `kitaplar.txt` : Input file containing book records (place in the project root).
+- `README.md` : This file.
 
-## Derleme ve Çalıştırma (Windows - PowerShell)
-1. PowerShell açın ve proje dizinine gidin:
+## Build and Run (Windows - PowerShell)
+1. Open PowerShell and change into the project directory (example path):
 
 ```powershell
-cd 'C:\Users\oguuz\OneDrive\Desktop\VeriYapilariOdev'
+cd 'C:\Users\oguuz\OneDrive\Desktop\ClibraryManager'
 ```
 
-2. GCC ile derleyin (MinGW veya benzeri GCC kurulu olmalı):
+2. Compile with GCC (MinGW or equivalent must be installed):
 
 ```powershell
 gcc 1.c -o kutuphane.exe
 ```
 
-3. Programı çalıştırın:
+3. Run the program:
 
 ```powershell
 .\kutuphane.exe
 ```
 
-Menüden 1 seçilerek dosyadan ekleme ve listeleme gerçekleştirilebilir.
+Choose option 1 from the menu to load records from `kitaplar.txt` and list them.
 
-## `kitaplar.txt` Dosya Formatı
-Her satır bir kitap kaydını temsil eder ve alanlar '|' (pipe) ile ayrılmıştır. Beklenen sırayla alanlar:
+## `kitaplar.txt` format
+Each line is a book record with fields separated by the pipe character `|` in this order:
 
-ISBN|Kitap Adı|Yazar Adı|Tür|SayfaSayısı
+ISBN|Title|Author|Genre|PageCount
 
-Örnek:
+Example:
 
 ```
 9786050950953|Simyacı|Paulo Coelho|Roman|184
 9789750724556|Kürk Mantolu Madonna|Sabahattin Ali|Klasik|160
 ```
 
-Not: Program `fscanf` ile `"%lf|%99[^|]|%99[^|]|%99[^|]|%d%*c"` biçiminde okuma yapar. ISBN sayısal (double) formatında beklenir.
+Note: The current code reads ISBN as a `double` using `fscanf` with `%lf`. It is safer to store ISBN as a string (e.g. `char ISBN[32];`) to avoid precision and formatting issues.
 
-## Özellikler
-- Dosyadan kuyruk oluşturma
-- Kuyruktan ISBN'ye göre sıralı döngüsel çift bağlı liste oluşturma
-- Menüde: ekleme (dosyadan), silme (ISBN ile), arama (türe göre ve sayfa uzunluğu sınıflandırması), sıralama (yazar adına göre), kütüphane istatistikleri
-- Basit konsol çıktıları ile listeleme
+## Features
+- Build queue from file
+- Convert queue to an ISBN-sorted circular doubly-linked list
+- Menu operations: load (from file), delete (by ISBN), search (by genre and length), sort (by author), library statistics
+- Simple console listing output
 
-## Bilinen Sorunlar ve Dikkat Edilmesi Gerekenler
-- `1.c` içindeki `siralama()` fonksiyonunda bir satır eksik/sözdizimi hatası bulunuyor: `temp2->next->prev = ;` — burası doğru işaret edilecek düğümü atamalıdır. Bu nedenle derleme hatası alabilirsiniz.
-- Program, boş `kitaplar.txt` veya beklenmeyen biçimli satırlar için yeterli hata kontrolü yapmıyor; `fscanf` başarısız olduğunda `temp->next = NULL;` gibi erişimler `temp` NULL ise segfault oluşturabilir. Giriş doğrulama eklenmelidir.
-- Kuyruktan listeye çevirme sırasında ve silme işlemlerinde bazı bellek temizleme (free) ve NULL kontrolleri eksik olabilir; büyük veri için bellek sızıntısı oluşabilir.
+## Known Issues and Caveats
+- The `siralama()` (sorting) function in `1.c` needs careful handling of node pointer assignments when swapping nodes in a circular doubly-linked list. Edge cases such as one- or two-element lists and updating the `listeIlk` pointer must be handled.
+- `dosyadanKuyrugaEkle()` uses `fscanf` and may dereference `temp` when scanning fails; this can lead to segmentation faults on malformed input. Add input validation and free any allocated node when scanning fails.
+- Some operations lack sufficient NULL checks and proper `free()` usage; for larger datasets this may cause memory leaks or invalid memory access. Add cleanup routines to free the queue and list on exit.
 
-## Önerilen İyileştirmeler (Next steps)
-- `siralama()` fonksiyonundaki hatayı düzeltmek ve fonksiyonu test etmek.
-- `dosyadanKuyrugaEkle()` içinde `fscanf` başarısız olduğunda oluşabilecek `NULL` erişimlerini engelleyecek kontroller eklemek.
-- Bellek sızıntılarını önlemek için program sonlandırılmadan önce kuyruk ve liste düğümlerinin serbest bırakılması (`free`) eklenmeli.
-- ISBN'i double yerine string (karakter dizisi) olarak saklamak daha güvenli olabilir (çok uzun ISBN'ler/özel karakterler). Bu sayede `fscanf` formatı da daha esnek olur.
-- Unit test veya küçük bir test giriş dosyası ekleyip derleme ve temel işlevleri otomatik doğrulayan betikler oluşturmak.
+## Recommended Fixes (short list)
+- Change ISBN to a string type (e.g. `char ISBN[32];`) and adapt `fscanf` accordingly (e.g. `%31[^|]|...`).
+- In `dosyadanKuyrugaEkle()`, after `malloc`, always check `fscanf` return; if it fails, `free()` the node and handle the error safely.
+- Add NULL checks before accessing `next`/`prev` when converting the queue to the list and during delete/swap operations.
+- Free all allocated nodes for both queue and list on program exit to avoid memory leaks.
 
-## Katkıda Bulunma
-1. Repo fork'lanır.
-2. Yeni bir branch açın (ör. `fix/siralama`).
-3. Değişiklikleri yapıp PR açın; değişiklik açıklamasında hangi hataları düzelttiğinizi belirtin.
-
-## Lisans
-Bu proje örnek amaçlıdır. İsterseniz uygun bir açık kaynak lisansı (MIT, Apache-2.0 vb.) ekleyebilirsiniz.
+## Contributing
+1. Fork the repository.
+2. Create a branch (e.g. `fix/readme-and-fixes`).
+3. Make changes, run tests, and open a pull request describing your changes.
 
 ---
-Hazırlayan: Proje kaynak kodu baz alınarak otomatik oluşturulan README (Türkçe). Kodun detaylı analizi ve testleri önerilir; özellikle `siralama()` fonksiyonundaki sözdizimi hatası düzeltilmeden derleme çalışmayabilir.
+This README was produced from the project sources. If you want, I can also apply the suggested code fixes (safe parsing, freeing on error, change ISBN to string, and verify the sorting routine) and run a quick compile test.

@@ -70,7 +70,7 @@ kuyruk *dosyadanKuyrugaEkle(){
         }
     }
     fclose(dosya);
-    printf("----------------- KUYRUK -----------------");
+    printf("----------------- KUYRUK -----------------\n");
     kuyrukYaz(kuyrukIlk);
     return kuyrukIlk;
 }
@@ -155,7 +155,7 @@ void kuyrukYaz(kuyruk *ilk){
     kuyruk *temp = ilk;
 
     while(temp != NULL){
-        printf("\n%s isbn : %.lf",temp->kitapAdi,temp->ISBN);
+        printf("%.lf|%s|%s|%s|%d\n",temp->ISBN,temp->kitapAdi,temp->yazarAdi,temp->turu,temp->sayfaSayisi);
         temp = temp->next;
     }
 }
@@ -182,6 +182,16 @@ void menu(){
         printf("\n----------------------------------\n");
         int secim;
         scanf("%d",&secim);
+
+        if(listeIlk == NULL && secim != 1){
+            if(secim == 6){
+                printf("cikis yapiliyor");
+                return;
+            } 
+            printf("\nliste bos once 1 ile ekleme yapiniz.");
+            continue;
+        }
+
         switch(secim){
             case 1 : 
                 dosyadanKuyrugaEkle();
@@ -196,6 +206,7 @@ void menu(){
             case 5 : kutuphaneBilgisi();
                 break;
             case 6 :
+                printf("cikis yapiliyor");
                 return;
             default :
                 printf("1-6 arasinda secim yapiniz");        
@@ -270,31 +281,59 @@ void arama(){
     }
 }
 
-void siralama(){
+void siralama() {
     node *temp = listeIlk;
-    while(1){
-        node *temp2 = listeIlk;
-        while(1){
-            if(strcmp(temp2->yazarAdi,temp2->next->yazarAdi) > 0){
-                if(temp2 == listeIlk){
-                    listeIlk = temp2->next;
-                }
-                temp2->prev->next = temp2->next;
-                temp2->next->next->prev = temp2;
-                temp2->next = temp2->next->next;
-                temp2->prev = temp2->next;
-                temp2->next->next = temp2;
-                temp2->next->prev = ;
-                
-            }
-            temp2 = temp2->next;
-            if(temp2 == listeIlk) break;
-        }
-        temp = temp->next;
-        if(temp == listeIlk) break;
-        printf("\n");
-    }
+    bool yerDegistiMi;
     
+    do {
+        yerDegistiMi = false;
+        temp = listeIlk;
+        do {
+            if (strcmp(temp->yazarAdi, temp->next->yazarAdi) > 0) {  
+                node *birinciNode = temp;
+                node *ikinciNode = temp->next;
+                node *birinciOnceki = birinciNode->prev;
+                node *ikinciSonraki = ikinciNode->next;
+
+                birinciNode->next = ikinciSonraki;
+                birinciNode->prev = ikinciNode;
+                ikinciNode->next = birinciNode;
+                ikinciNode->prev = birinciOnceki;
+                birinciOnceki->next = ikinciNode;
+                ikinciSonraki->prev = birinciNode;
+
+                if (temp == listeIlk) {
+                    listeIlk = ikinciNode;
+                }
+                
+                temp = ikinciNode;
+                yerDegistiMi = true;
+            }else if(strcmp(temp->yazarAdi,temp->next->yazarAdi) == 0 && strcmp(temp->kitapAdi,temp->next->kitapAdi) > 0){
+                node *birinciNode = temp;
+                node *ikinciNode = temp->next;
+                node *birinciOnceki = birinciNode->prev;
+                node *ikinciSonraki = ikinciNode->next;
+
+                birinciNode->next = ikinciSonraki;
+                birinciNode->prev = ikinciNode;
+                ikinciNode->next = birinciNode;
+                ikinciNode->prev = birinciOnceki;
+                birinciOnceki->next = ikinciNode;
+                ikinciSonraki->prev = birinciNode;
+
+                if (temp == listeIlk) {
+                    listeIlk = ikinciNode;
+                }
+                
+                temp = ikinciNode;
+                yerDegistiMi = true;
+            }
+            temp = temp->next;
+        } while (temp->next != listeIlk);
+    } while (yerDegistiMi);
+
+    printf("\nYazar adina gore siralanmis liste :\n");
+    listeYaz();
 }
 
 void kutuphaneBilgisi(){
